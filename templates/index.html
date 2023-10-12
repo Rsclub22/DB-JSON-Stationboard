@@ -1,136 +1,123 @@
+<!DOCTYPE html>
 <html lang="en">
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Abfahrtsinformationen</title>
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                background-color: #f0f0f0; /* Hintergrundfarbe im Standardmodus */
-                color: #333; /* Textfarbe im Standardmodus */
-                position: relative;
-            }
-    
-            /* Dark-Mode-Stile */
-            body.dark-mode {
-                background-color: #333; /* Hintergrundfarbe im Dark-Mode */
-                color: #ffff; /* Textfarbe im Dark-Mode */
-            }
-            /* Dark-Mode-Stile für die Tabelle */
-            body.dark-mode table {
-                color: #fff; /* Textfarbe in der Tabelle im Dark-Mode */
-            }
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Abfahrtsinformationen</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0; /* Hintergrundfarbe im Standardmodus */
+            color: #333; /* Textfarbe im Standardmodus */
+            position: relative;
+        }
 
-    
-            h1 {
-                text-align: center;
-            }
-            h2 {
-                text-align: center;
-            }
-    
-            form {
-                display: flex;
-                justify-content: center;
-                margin-top: 20px;
-            }
-    
-            label {
-                font-weight: bold;
-                margin-right: 10px;
-            }
-    
-            input[type="text"] {
-                padding: 5px;
-                border: 1px solid #ccc;
-                border-radius: 5px;
-            }
-    
-            button[type="submit"] {
-                background-color: #007bff;
-                color: white;
-                border: none;
-                border-radius: 5px;
-                padding: 5px 10px;
-                cursor: pointer;
-            }
-    
-            table {
-                width: 100%;
-                border-collapse: collapse;
-                margin-top: 20px;
-            }
+        /* Dark-Mode-Stile */
+        body.dark-mode {
+            background-color: #333; /* Hintergrundfarbe im Dark-Mode */
+            color: #ffff; /* Textfarbe im Dark-Mode */
+        }
+        /* Dark-Mode-Stile für die Tabelle */
+        body.dark-mode table {
+            color: #fff; /* Textfarbe in der Tabelle im Dark-Mode */
+        }
 
-            table, th, td {
-                border: 1px solid #ccc;
-            }
-    
-            th, td {
-                padding: 10px;
-                text-align: left;
-            }
-    
-            th {
-                background-color: #007bff;
-                color: white;
-            }
-    
-            /* Dark-Mode-Schalter */
-            #dark-mode-toggle {
-                position: absolute;
-                top: 10px;
-                right: 10px;
-                background-color: transparent;
-                border: none;
-                cursor: pointer;
-                font-size: 20px;
-                color: #007bff;
-            }
-        </style>
-        <script>
-    
-    // Definiere die Variable delay_in_seconds  
-    function updateDepartures() {
-      // Hole die aktuellen Abfahrtsinformationen vom Server
-      fetch('/departures')
-        .then(response => response.json())
-        .then(departures => {
-          // Berechne die Verspätung in Minuten für jede Abfahrt
-          departures.forEach(leg => {
-            if (leg.delay) {
-              delay_in_seconds = leg.delay.total_seconds() / 60;
-            } else {
-              delay_in_seconds = 0;
-            }
-          });
-    
-          // Aktualisiere die HTML-Tabelle mit den neuen Daten
-          const tableBody = document.querySelector('table tbody');
-          tableBody.innerHTML = '';
-    
-          departures.forEach(leg => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-              <td><span class="math-inline">${leg.name}</td\>
-    <td\></span>${leg.direction}</td>
-              <td><span class="math-inline">${leg.dateTime}</td\>
-    <td\></span>${leg.delay}</td>
-              <td>${leg.platform}</td>
-            `;
-    
-            tableBody.appendChild(row);
-          });
-        });
-    }
-    
-    // Starte den Timer, um die Abfahrtsinformationen jede Minute zu aktualisieren
-    setInterval(updateDepartures, 10000); // 60000 Millisekunden = 1 Minute
-    
-        </script>
-    </head>
-<body class="a">
+        h1 {
+            text-align: center;
+        }
+        h2 {
+            text-align: center;
+        }
+
+        form {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        label {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        input[type="text"] {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button[type="submit"] {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid #ccc;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+
+        /* Dark-Mode-Schalter */
+        #dark-mode-toggle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            color: #007bff;
+        }
+    </style>
+    <script>
+        function updateDepartures() {
+            // Hier setzen Sie den Namen Ihrer Flask-Route, die die Abfahrtsdaten zurückgibt.
+            const apiUrl = "/update_departures";
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    // Aktualisieren Sie die Tabelle mit den neuen Daten
+                    const tableBody = document.querySelector('table tbody');
+                    tableBody.innerHTML = '';
+
+                    data.departures.forEach(leg => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${leg.train}<br>(${leg.trainNumber})</td>
+                            <td>${leg.destination}</td>
+                            <td>${leg.via.join(', ')}</td>
+                            <td>${leg.scheduledDeparture}</td>
+                            <td>${leg.delayDeparture}</td>
+                            <td>${leg.scheduledPlatform}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                });
+        }
+
+        // Führen Sie die Aktualisierungsfunktion alle 10 Sekunden aus
+        setInterval(updateDepartures, 10000);
+    </script>
+</head>
+<body class="{{ station_name }}">
     <button id="dark-mode-toggle">🌙</button> <!-- Mond-Emoji als Dark-Mode-Symbol -->
     <h1>Abfahrten / Departures</h1>
     <h2>Station: {{ station_name }}</h2>
@@ -142,12 +129,13 @@
     </form>
 
     {% if departures %}
-    <table class>
+    <table>
         <thead>
             <tr>
                 <th>Name</th>
                 <th>Richtung / Direction</th>
-                <th>Geplante Abfahrtszeit / Planned depature</th>
+                <th>Über/ via</th>
+                <th>Geplante Abfahrtszeit / Planned departure</th>
                 <th>Verspätung (Minuten) / Delay (minutes)</th>
                 <th>Bahnsteig / Platform</th>
             </tr>
@@ -155,11 +143,12 @@
         <tbody>
             {% for leg in departures %}
             <tr>
-                <td>{{ leg.name }}</td>
-                <td>{{ leg.direction }}</td>
-                <td>{{ leg.dateTime.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-                <td>{% if leg.delay %}{{ leg.delay.total_seconds() / 60 }}{% else %}0{% endif %}</td>
-                <td>{{ leg.platform }}</td>
+                <td>{{ leg.train }}<br>({{leg.trainNumber}})</td>
+                <td>{{ leg.destination }}</td>
+                <td>{{ leg.via | join(', ') }}</td>
+                <td>{{ leg.scheduledDeparture }}</td>
+                <td>{{ leg.delayDeparture }}</td>
+                <td>{{ leg.scheduledPlatform }}</td>
             </tr>
             {% endfor %}
         </tbody>
