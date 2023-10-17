@@ -67,12 +67,12 @@
 
         th, td {
             padding: 10px;
-            text-align: left;
         }
 
         th {
             background-color: #007bff;
             color: white;
+            text-align: left;
         }
 
         /* Dark-Mode-Schalter */
@@ -86,35 +86,90 @@
             font-size: 20px;
             color: #007bff;
         }
-    </style>
-    <script>
-        function updateDepartures() {
-            // Hier setzen Sie den Namen Ihrer Flask-Route, die die Abfahrtsdaten zurückgibt.
-            const apiUrl = "/update_departures";
-            fetch(apiUrl)
-                .then(response => response.json())
-                .then(data => {
-                    // Aktualisieren Sie die Tabelle mit den neuen Daten
-                    const tableBody = document.querySelector('table tbody');
-                    tableBody.innerHTML = '';
-
-                    data.departures.forEach(leg => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${leg.train}<br>(${leg.trainNumber})</td>
-                            <td>${leg.destination}</td>
-                            <td>${leg.via.join(', ')}</td>
-                            <td>${leg.scheduledDeparture}</td>
-                            <td>${leg.delayDeparture}</td>
-                            <td>${leg.scheduledPlatform}</td>
-                        `;
-                        tableBody.appendChild(row);
-                    });
-                });
+        .centered-cell {
+            text-align: center; /* Horizontale Ausrichtung zentriert */
+            vertical-align: middle; /* Vertikale Ausrichtung zentriert */
         }
+        .centered-cell.delay-cell {
+            color: #FF0000;
+            padding: 5px;
+            border: none;
+        }
+        .delay-depature-text {
+            color: #FFA000;
+            font-weight: bold;
+        }
+        .delay-arrival-text {
+            color: #FF5000;
+            font-weight: bold;
+        }
+    </style>
+<script>
+    function updateDepartures() {
+        const apiUrl = "/update_departures";
+        fetch(apiUrl)
+            .then(response => response.json())
+            .then(data => {
+                const tableBody = document.querySelector('table tbody');
+                tableBody.innerHTML = '';
 
-        // Führen Sie die Aktualisierungsfunktion alle 10 Sekunden aus
-        setInterval(updateDepartures, 10000);
+                data.departures.forEach(leg => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="centered-cell">${leg.train}<br>(${leg.trainNumber})</td>
+                        <td class="centered-cell">${leg.destination}</td>
+                        <td class="centered-cell">${leg.via.join(', ')}</td>
+                        <td class="centered-cell scheduled-arrival-cell"></td>
+                        <td class="centered-cell delay-reasons delay-arrival"></td>
+                        <td class="centered-cell scheduled-depature-cell"></td>
+                        <td class="centered-cell delay-reasons delay-depature"></td>
+                        <td class="centered-cell">${leg.scheduledPlatform}</td>
+                    `;
+                    const delayArrivalCell = row.querySelector('.delay-arrival');
+                    if (leg.delayArrival !== null) {
+                        delayArrivalCell.innerHTML += `<span class="delay-arrival-text">${leg.delayArrival}</span>`;
+                    }
+                    else {
+                        delayArrivalCell.innerHTML += "----------";
+                    }
+
+                    const delayDepartureCell = row.querySelector('.delay-depature');
+                    if (leg.delayDeparture !== null ) {
+                        delayDepartureCell.innerHTML += `<span class="delay-depature-text">${leg.delayDeparture}</span>`;
+                    }
+                    else {
+                        delayDepartureCell.innerHTML += "----------";
+                    }
+
+                    const scheduledArrivalCell = row.querySelector('.scheduled-arrival-cell');
+                    if (leg.scheduledArrival !== null) {
+                        scheduledArrivalCell.innerHTML += leg.scheduledArrival;
+                    }
+                    else {
+                        scheduledArrivalCell.innerHTML += "----------";
+                    }
+                    const scheduledDepatureCell = row.querySelector('.scheduled-depature-cell');
+                    if (leg.scheduledDeparture !== null) {
+                        scheduledDepatureCell.innerHTML += leg.scheduledDeparture;
+                    }
+                    else {
+                        scheduledDepatureCell.innerHTML += "----------";
+                    }
+                    const delayCell = row.querySelector('.delay-reasons');
+                    if (delayCell !== null) {
+                        delayCell.innerHTML += '<table class="delay-reasons-table"></table>';
+                        const delayReasonsTable = row.querySelector('.delay-reasons-table');
+                        leg.messages.delay.forEach(delay => {
+                        delayReasonsTable.innerHTML += `<tr><td class="centered-cell delay-cell">${delay.text}</td></tr>`;
+                    });
+                    }
+
+                    tableBody.appendChild(row);
+                });
+            });
+    }
+
+    setInterval(updateDepartures, 10000);
     </script>
 </head>
 <body class="{{ station_name }}">
@@ -135,26 +190,34 @@
                 <th>Name</th>
                 <th>Richtung / Direction</th>
                 <th>Über/ via</th>
+                <th>Geplante Akunftszeit / Planned arrival</th>
+                <th>Verspätung der Ankunft (Minuten) / Arrival delay (minutes)</th>
                 <th>Geplante Abfahrtszeit / Planned departure</th>
-                <th>Verspätung (Minuten) / Delay (minutes)</th>
-                <th>Verspätungsgründe / Delay Reasons</th>
+                <th>Verspätung der Abfahrt (Minuten) / Depature delay (minutes)<br>Verspätungsgründe / Delay Reasons</th>
                 <th>Bahnsteig / Platform</th>
             </tr>
         </thead>
         <tbody>
             {% for leg in departures %}
             <tr>
-                <td>{{ leg.train }}<br>({{leg.trainNumber}})</td>
-                <td>{{ leg.destination }}</td>
-                <td>{{ leg.via | join(', ') }}</td>
-                <td>{{ leg.scheduledDeparture }}</td>
-                <td>{{ leg.delayDeparture }}</td>
-                <td>
-                    <ul>
-                        {% for leg.delay in leg.messages.delay %}
-                            <li>{{ leg.text }}</li>
+                <td class="centered-cell">{{ leg.train }}<br>({{leg.trainNumber}})</td>
+                <td class="centered-cell">{{ leg.destination }}</td>
+                <td class="centered-cell">{{ leg.via | join(', ') }}</td>
+                <td class="centered-cell">{{ leg.scheduledArrival }}</td>
+                <td class="centered-cell delay-reasons delay-arrival"><span class="delay-arrival-text">{{ leg.delayArrival }}</span>
+                    <table>
+                        {% for delay in leg.messages.delay %}
+                        <tr><td class="centered-cell delay-cell">{{ delay.text }}</td></tr>
                         {% endfor %}
-                    </ul>
+                    </table>
+                </td>
+                <td class="centered-cell scheduled-depature-cell">{{ leg.scheduledDeparture }}</td>
+                <td class="centered-cell delay-reasons delay-depature"><span class="delay-depature-text">{{ leg.delayDeparture }}</span>
+                    <table>
+                        {% for delay in leg.messages.delay %}
+                        <tr><td class="centered-cell delay-cell">{{ delay.text }}</td></tr>
+                        {% endfor %}
+                    </table>
                 </td>
                 <td>{{ leg.scheduledPlatform }}</td>
             </tr>
