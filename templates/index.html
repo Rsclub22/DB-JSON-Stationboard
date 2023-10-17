@@ -137,6 +137,7 @@
                 <th>Über/ via</th>
                 <th>Geplante Abfahrtszeit / Planned departure</th>
                 <th>Verspätung (Minuten) / Delay (minutes)</th>
+                <th>Verspätungsgründe / Delay Reasons</th>
                 <th>Bahnsteig / Platform</th>
             </tr>
         </thead>
@@ -148,6 +149,13 @@
                 <td>{{ leg.via | join(', ') }}</td>
                 <td>{{ leg.scheduledDeparture }}</td>
                 <td>{{ leg.delayDeparture }}</td>
+                <td>
+                    <ul>
+                        {% for leg.delay in leg.messages.delay %}
+                            <li>{{ leg.text }}</li>
+                        {% endfor %}
+                    </ul>
+                </td>
                 <td>{{ leg.scheduledPlatform }}</td>
             </tr>
             {% endfor %}
