@@ -11,7 +11,6 @@ def index():
     if request.method == 'POST':
         station_name = request.form.get('station_name', '')
         if station_name:
-            # Speichere den Stationsnamen im Cookie
             url = f"https://dbf.finalrewind.org/{station_name}.json?version=3"
             response = requests.get(url)
 
@@ -22,7 +21,7 @@ def index():
                 resp.set_cookie('station_name', station_name)
                 return resp
 
-    if station_name:  # Überprüfe, ob ein Stationsname aus dem Cookie gelesen wurde
+    if station_name:
         url = f"https://dbf.finalrewind.org/{station_name}.json?version=3"
         response = requests.get(url)
 
