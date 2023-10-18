@@ -103,6 +103,9 @@
             color: #FF5000;
             font-weight: bold;
         }
+        .cancelled-row {
+            background-color: #500303;
+        }
     </style>
 <script>
     function updateDepartures() {
@@ -115,27 +118,35 @@
 
                 data.departures.forEach(leg => {
                     const row = document.createElement('tr');
+                    row.className = leg.isCancelled ? 'cancelled-row' : '';
                     row.innerHTML = `
                         <td class="centered-cell">${leg.train}<br>(${leg.trainNumber})</td>
+                        <td class="centered-cell">${leg.route[0].name}</td>
                         <td class="centered-cell">${leg.destination}</td>
                         <td class="centered-cell">${leg.via.join(', ')}</td>
                         <td class="centered-cell scheduled-arrival-cell"></td>
-                        <td class="centered-cell delay-reasons delay-arrival"></td>
+                        <td class="centered-cell delay-arrival"></td>
                         <td class="centered-cell scheduled-depature-cell"></td>
                         <td class="centered-cell delay-reasons delay-depature"></td>
                         <td class="centered-cell">${leg.scheduledPlatform}</td>
                     `;
                     const delayArrivalCell = row.querySelector('.delay-arrival');
-                    if (leg.delayArrival !== null) {
+                    if (leg.delayArrival !== null && leg.delayArrival !== 0) {
                         delayArrivalCell.innerHTML += `<span class="delay-arrival-text">${leg.delayArrival}</span>`;
+                    }
+                    else if (leg.delayArrival === 0) {
+                        delayArrivalCell.innerHTML += "----------"; 
                     }
                     else {
                         delayArrivalCell.innerHTML += "----------";
                     }
 
                     const delayDepartureCell = row.querySelector('.delay-depature');
-                    if (leg.delayDeparture !== null ) {
+                    if (leg.delayDeparture !== null && leg.delayDeparture !==0) {
                         delayDepartureCell.innerHTML += `<span class="delay-depature-text">${leg.delayDeparture}</span>`;
+                    }
+                    else if (leg.delayArrival === 0) {
+                        delayDepartureCell.innerHTML += "----------";
                     }
                     else {
                         delayDepartureCell.innerHTML += "----------";
@@ -184,46 +195,42 @@
     </form>
 
     {% if departures %}
-    <table>
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Richtung / Direction</th>
-                <th>Über/ via</th>
-                <th>Geplante Akunftszeit / Planned arrival</th>
-                <th>Verspätung der Ankunft (Minuten) / Arrival delay (minutes)</th>
-                <th>Geplante Abfahrtszeit / Planned departure</th>
-                <th>Verspätung der Abfahrt (Minuten) / Depature delay (minutes)<br>Verspätungsgründe / Delay Reasons</th>
-                <th>Bahnsteig / Platform</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for leg in departures %}
-            <tr>
-                <td class="centered-cell">{{ leg.train }}<br>({{leg.trainNumber}})</td>
-                <td class="centered-cell">{{ leg.destination }}</td>
-                <td class="centered-cell">{{ leg.via | join(', ') }}</td>
-                <td class="centered-cell">{{ leg.scheduledArrival }}</td>
-                <td class="centered-cell delay-reasons delay-arrival"><span class="delay-arrival-text">{{ leg.delayArrival }}</span>
-                    <table>
-                        {% for delay in leg.messages.delay %}
-                        <tr><td class="centered-cell delay-cell">{{ delay.text }}</td></tr>
-                        {% endfor %}
-                    </table>
-                </td>
-                <td class="centered-cell scheduled-depature-cell">{{ leg.scheduledDeparture }}</td>
-                <td class="centered-cell delay-reasons delay-depature"><span class="delay-depature-text">{{ leg.delayDeparture }}</span>
-                    <table>
-                        {% for delay in leg.messages.delay %}
-                        <tr><td class="centered-cell delay-cell">{{ delay.text }}</td></tr>
-                        {% endfor %}
-                    </table>
-                </td>
-                <td>{{ leg.scheduledPlatform }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Von / From</th>
+                    <th>Richtung / Direction</th>
+                    <th>Über/ via</th>
+                    <th>Geplante Ankunftszeit / Planned arrival</th>
+                    <th>Verspätung der Ankunft (Minuten) / Arrival delay (minutes)</th>
+                    <th>Geplante Abfahrtszeit / Planned departure</th>
+                    <th>Verspätung der Abfahrt (Minuten) / Departure delay (minutes)<br><br>Verspätungsgründe / Delay Reasons</th>
+                    <th>Bahnsteig / Platform</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for leg in departures %}
+                <tr class="{% if leg.isCancelled %}cancelled-row{% endif %}">
+                    <td class="centered-cell">{{ leg.train }}<br>({{ leg.trainNumber }})</td>
+                    <td class="centered-cell">{{ leg.route[0].name }}</td> <!-- Ursprungsort -->
+                    <td class="centered-cell">{{ leg.destination }}</td>
+                    <td class="centered-cell">{{ leg.via | join(', ') }}</td>
+                    <td class="centered-cell">{{ leg.scheduledArrival if leg.scheduledArrival else "----------" }}</td>
+                    <td class="centered-cell delay-arrival"><span class="delay-arrival-text">{{ leg.delayArrival if leg.delayArrival else "----------" }}</span></td>
+                    <td class="centered-cell scheduled-departure-cell">{{ leg.scheduledDeparture if leg.scheduledDeparture else "----------" }}</td>
+                    <td class="centered-cell delay-reasons delay-departure"><span class="delay-depature-text">{{ leg.delayDeparture if leg.delayDeparture else "----------" }}</span>
+                        <table>
+                            {% for delay in leg.messages.delay %}
+                            <tr><td class="centered-cell delay-cell">{{ delay.text }}</td></tr>
+                            {% endfor %}
+                        </table>
+                    </td>
+                    <td>{{ leg.scheduledPlatform }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     {% endif %}
     
     <script>
